@@ -91,6 +91,16 @@ CREATE TABLE messages (
     deleted_at TIMESTAMP WITH TIME ZONE 
 );
 
+CREATE TABLE commentsForItinerary (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    content TEXT NOT NULL,
+    author_id UUID REFERENCES users(id),
+    itinerary_id UUID REFERENCES itineraries(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
 CREATE TABLE travel_tips (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title VARCHAR(200) NOT NULL,
