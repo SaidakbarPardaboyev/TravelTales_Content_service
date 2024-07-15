@@ -45,7 +45,7 @@ CREATE TABLE itineraries (
     comments_count INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+);  
 
 CREATE TABLE itinerary_destinations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
