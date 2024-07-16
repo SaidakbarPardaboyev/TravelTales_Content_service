@@ -128,27 +128,3 @@ func (i *InterationsRepo) CreateLike(req *pb.RequestLikeStory) error {
 	_, err := i.DB.Exec(query, req.UserId, req.StoryId)
 	return err
 }
-
-// func (i *InterationsRepo) CreateComment(req *pb.RequestCreateComment) (
-// 	string, error) {
-
-// 	query := `
-
-// 	`
-// }
-
-// func (i *InterationsRepo) CreateComment(req *pb.RequestCreateComment) (
-// 	string, error) {
-
-// 	query := `
-
-// 	`
-// }
-
-// func (i *InterationsRepo) CreateComment(req *pb.RequestCreateComment) (
-// 	string, error) {
-
-// 	query := `
-
-// 	`
-// }
