@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	pb "travel/genproto/stories"
+	"travel/models"
 	"travel/pkg/logger"
 
 	"github.com/google/uuid"
@@ -96,3 +97,64 @@ func (s *StoriesRepo) DeleteStoryTags(storyId string) error {
 	_, err := s.DB.Exec(query, storyId)
 	return err
 }
+
+func (s *StoriesRepo) GetStories(filter *pb.RequestGetStories) (
+	*[]models.Story, error) {
+
+	query := `
+		select
+			id, title, author_id, location, likes_count, comments_count, 
+			created_at
+		from
+			stories
+		limit $1
+		offset $2
+	`
+
+	rows, err := s.DB.Query(query, filter.Limit, filter.Limit*filter.Page)
+	if err != nil {
+		return nil, err
+	}
+
+	stories := []models.Story{}
+	for rows.Next() {
+		var story models.Story
+		err := rows.Scan(&story.Id, &story.Title, &story.AuthorId,
+			&story.Location, &story.Likes_count, &story.Comments_count,
+			&story.Created_at)
+		if err != nil {
+			return nil, err
+		}
+		stories = append(stories, story)
+	}
+
+	return &stories, nil
+}
+
+func (s *StoriesRepo) FindNumberOfStories() (int, error) {
+
+	query := `
+		select
+			count(*)
+		from
+			stories
+		where
+			deleted_at is null
+	`
+
+	count := 0
+	err := s.DB.QueryRow(query).Scan(&count)
+	return count, err
+}
+
+// func (s *StoriesRepo) GetStories(filter *pb.RequestGetStories) (
+// 	*pb.ResponseGetStories, error) {
+
+// 	query := ``
+// }
+
+// func (s *StoriesRepo) GetStories(filter *pb.RequestGetStories) (
+// 	*pb.ResponseGetStories, error) {
+
+// 	query := ``
+// }

@@ -97,7 +97,52 @@ func (s *Stories) EditStory(ctx context.Context, in *pb.RequestEditStory) (
 	return &resp, nil
 }
 
-// func (s *Stories) GetStories(ctx context.Context, in *pb.RequestGetStories) (*pb.ResponseGetStories, error)
-// func (s *Stories) GetStoryFullInfo(ctx context.Context, in *pb.RequestGetStoryFullInfo) (*pb.ResponseGetStoryFullInfo, error)
+func (s *Stories) GetStories(ctx context.Context, in *pb.RequestGetStories) (
+	*pb.ResponseGetStories, error) {
+	stories, err := s.StoriesRepo.GetStories(in)
+	if err != nil {
+		s.Logger.Error(fmt.Sprintf("error with getting stories: %s", err))
+		return nil, err
+	}
+
+	resp := pb.ResponseGetStories{}
+	for _, val := range *stories {
+		auther, err := s.UserClient.GetAuthorInfo(ctx,
+			&pbUser.RequestGetAuthorInfo{Id: val.AuthorId})
+		if err != nil {
+			return nil, err
+		}
+		story := pb.StoryForGet{
+			Id:    val.Id,
+			Title: val.Title,
+			Author: &pb.Author{
+				Id:       auther.Id,
+				Username: auther.Username,
+			},
+			Location:      val.Location,
+			LikesCount:    int64(val.Likes_count),
+			CommentsCount: int64(val.Comments_count),
+			CreatedAt:     val.Created_at,
+		}
+
+		resp.Stories = append(resp.Stories, &story)
+	}
+
+	countOfStories, err := s.StoriesRepo.FindNumberOfStories()
+	if err != nil {
+		s.Logger.Error(fmt.Sprintf("error with getting total stories count: %s", err))
+		return nil, err
+	}
+	resp.Total = int64(countOfStories)
+	resp.Limit = in.Limit
+	resp.Page = in.Page
+
+	return &resp, nil
+}
+
+func (s *Stories) GetStoryFullInfo(ctx context.Context, in *pb.RequestGetStoryFullInfo) (
+	*pb.ResponseGetStoryFullInfo, error) {
+
+}
 
 // func (s *Stories) DeleteStory(ctx context.Context, in *pb.RequestDeleteStory) (*pb.ResponseDeleteStory, error)

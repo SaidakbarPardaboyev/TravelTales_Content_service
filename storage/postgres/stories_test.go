@@ -66,11 +66,25 @@ func TestDeleteStoryTags(t *testing.T) {
 	}
 }
 
+func TestGetStories(t *testing.T) {
+	req := pb.RequestGetStories{
+		Page:  0,
+		Limit: 10,
+	}
+	_, err := NewRepo().GetStories(&req)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestFindNumberOfStories(t *testing.T) {
+	_, err := NewRepo().FindNumberOfStories()
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 // func Test(t *testing.T) {
-
-// }func Test(t *testing.T) {
-
-// }func Test(t *testing.T) {
 
 // }func Test(t *testing.T) {
 

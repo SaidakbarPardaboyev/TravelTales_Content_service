@@ -31,6 +31,7 @@ type UsersClient interface {
 	Follow(ctx context.Context, in *RequestFollow, opts ...grpc.CallOption) (*ResponseFollow, error)
 	GetFollowers(ctx context.Context, in *RequestGetFollowers, opts ...grpc.CallOption) (*ResponseGetFollowers, error)
 	ValidateUser(ctx context.Context, in *RequestGetProfile, opts ...grpc.CallOption) (*Status, error)
+	GetAuthorInfo(ctx context.Context, in *RequestGetAuthorInfo, opts ...grpc.CallOption) (*ResponseGetAuthorInfo, error)
 }
 
 type usersClient struct {
@@ -122,6 +123,15 @@ func (c *usersClient) ValidateUser(ctx context.Context, in *RequestGetProfile, o
 	return out, nil
 }
 
+func (c *usersClient) GetAuthorInfo(ctx context.Context, in *RequestGetAuthorInfo, opts ...grpc.CallOption) (*ResponseGetAuthorInfo, error) {
+	out := new(ResponseGetAuthorInfo)
+	err := c.cc.Invoke(ctx, "/users.Users/GetAuthorInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UsersServer is the server API for Users service.
 // All implementations must embed UnimplementedUsersServer
 // for forward compatibility
@@ -135,6 +145,7 @@ type UsersServer interface {
 	Follow(context.Context, *RequestFollow) (*ResponseFollow, error)
 	GetFollowers(context.Context, *RequestGetFollowers) (*ResponseGetFollowers, error)
 	ValidateUser(context.Context, *RequestGetProfile) (*Status, error)
+	GetAuthorInfo(context.Context, *RequestGetAuthorInfo) (*ResponseGetAuthorInfo, error)
 	mustEmbedUnimplementedUsersServer()
 }
 
@@ -168,6 +179,9 @@ func (UnimplementedUsersServer) GetFollowers(context.Context, *RequestGetFollowe
 }
 func (UnimplementedUsersServer) ValidateUser(context.Context, *RequestGetProfile) (*Status, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateUser not implemented")
+}
+func (UnimplementedUsersServer) GetAuthorInfo(context.Context, *RequestGetAuthorInfo) (*ResponseGetAuthorInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAuthorInfo not implemented")
 }
 func (UnimplementedUsersServer) mustEmbedUnimplementedUsersServer() {}
 
@@ -344,6 +358,24 @@ func _Users_ValidateUser_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Users_GetAuthorInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestGetAuthorInfo)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).GetAuthorInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/users.Users/GetAuthorInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).GetAuthorInfo(ctx, req.(*RequestGetAuthorInfo))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Users_ServiceDesc is the grpc.ServiceDesc for Users service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -386,6 +418,10 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ValidateUser",
 			Handler:    _Users_ValidateUser_Handler,
+		},
+		{
+			MethodName: "GetAuthorInfo",
+			Handler:    _Users_GetAuthorInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
