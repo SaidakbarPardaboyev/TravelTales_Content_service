@@ -21,3 +21,10 @@ type StoryFullInfo struct {
 	CreatedAt     string
 	UpdatedAt string
 }
+
+type Comment struct {
+	Id string
+	Content string
+	AuthorId string
+	CreatedAt string
+}

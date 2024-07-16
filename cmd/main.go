@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"travel/config"
+	pbInter "travel/genproto/interactions"
 	pb "travel/genproto/stories"
 	"travel/service"
 	"travel/storage/postgres"
@@ -25,8 +26,10 @@ func main() {
 	}
 
 	u := service.NewContentService(db)
+	interactions := service.NewInterationsService(db)
 	server := grpc.NewServer()
 	pb.RegisterStoriesServer(server, u)
+	pbInter.RegisterInteractionsServer(server, interactions)
 
 	fmt.Printf("Content service is listening on port %s...\n", config.Load().CONTENT_SERVICE_PORT)
 	if err := server.Serve(listener); err != nil {

@@ -13,6 +13,7 @@ func NewRepo() *StoriesRepo {
 	}
 	return NewStoriesRepo(db)
 }
+
 func TestCreateStory(t *testing.T) {
 
 	req := pb.RequestCreateStory{
