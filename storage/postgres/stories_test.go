@@ -98,6 +98,9 @@ func TestGetStoryTags(t *testing.T) {
 	}
 }
 
-// func Test(t *testing.T) {
-
-// }
+func TestDeleteStory(t *testing.T) {
+	err := NewRepo().DeleteStory("cefbcf04-172e-4b01-88ed-763ab5848d45")
+	if err != nil {
+		t.Error(err)
+	}
+}

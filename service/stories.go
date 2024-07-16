@@ -178,4 +178,12 @@ func (s *Stories) GetStoryFullInfo(ctx context.Context, in *pb.RequestGetStoryFu
 	return &resp, nil
 }
 
-// func (s *Stories) DeleteStory(ctx context.Context, in *pb.RequestDeleteStory) (*pb.ResponseDeleteStory, error)
+func (s *Stories) DeleteStory(ctx context.Context, in *pb.RequestDeleteStory) (
+	*pb.ResponseDeleteStory, error) {
+	err := s.StoriesRepo.DeleteStory(in.StoryId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.ResponseDeleteStory{Message: "Story was deleted Successfully"}, nil
+}

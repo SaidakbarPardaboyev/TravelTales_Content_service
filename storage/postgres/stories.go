@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"time"
 	pb "travel/genproto/stories"
 	"travel/models"
 	"travel/pkg/logger"
@@ -187,8 +188,21 @@ func (s *StoriesRepo) GetStoryTags(storyId string) (*[]string, error) {
 	return &res, err
 }
 
-// func (s *StoriesRepo) GetStories(filter *pb.RequestGetStories) (
-// 	*pb.ResponseGetStories, error) {
+func (s *StoriesRepo) DeleteStory(id string) error {
 
-// 	query := ``
-// }
+	query := `
+		update 
+			stories
+		set
+			deleted_at = $1
+		where
+			id = $2 and 
+			deleted_at is null
+	`
+
+	res, err := s.DB.Exec(query, time.Now(), id)
+	if num, _ := res.RowsAffected(); num <= 0 {
+		return fmt.Errorf("story is not found with the id")
+	}
+	return err
+}
