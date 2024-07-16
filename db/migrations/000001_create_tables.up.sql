@@ -3,7 +3,8 @@ CREATE TABLE stories (
     title VARCHAR(200) NOT NULL,
     content TEXT NOT NULL,
     location VARCHAR(100),
-    author_id UUID REFERENCES users(id),
+    author_id UUID,
+    images VARCHAR[],
     likes_count INTEGER DEFAULT 0,
     comments_count INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -20,7 +21,7 @@ CREATE TABLE story_tags (
 CREATE TABLE comments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     content TEXT NOT NULL,
-    author_id UUID REFERENCES users(id),
+    author_id UUID,
     story_id UUID REFERENCES stories(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -28,7 +29,7 @@ CREATE TABLE comments (
 );
 
 CREATE TABLE likes (
-    user_id UUID REFERENCES users(id),
+    user_id UUID,
     story_id UUID REFERENCES stories(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, story_id)
@@ -40,7 +41,7 @@ CREATE TABLE itineraries (
     description TEXT,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
-    author_id UUID REFERENCES users(id),
+    author_id UUID,
     likes_count INTEGER DEFAULT 0,
     comments_count INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -83,8 +84,8 @@ CREATE TABLE destinations (
 
 CREATE TABLE messages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    sender_id UUID REFERENCES users(id),
-    recipient_id UUID REFERENCES users(id),
+    sender_id UUID,
+    recipient_id UUID,
     content TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -94,7 +95,7 @@ CREATE TABLE messages (
 CREATE TABLE commentsForItinerary (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     content TEXT NOT NULL,
-    author_id UUID REFERENCES users(id),
+    author_id UUID,
     itinerary_id UUID REFERENCES itineraries(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -106,7 +107,7 @@ CREATE TABLE travel_tips (
     title VARCHAR(200) NOT NULL,
     content TEXT NOT NULL,
     category VARCHAR(50),
-    author_id UUID REFERENCES users(id),
+    author_id UUID,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP WITH TIME ZONE 
