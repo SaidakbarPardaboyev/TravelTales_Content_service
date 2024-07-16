@@ -46,6 +46,21 @@ func TestCountComments(t *testing.T) {
 	}
 }
 
-// func TestXxx(t *testing.T) {
+func TestLikeStory(t *testing.T) {
+	err := NewIntRepo().LikeStory("24c22836-26fa-486d-b660-262e123a1a5c")
+	if err != nil {
+		t.Error(err)
+	}
+}
 
-// }
+func TestCreateLike(t *testing.T) {
+	req := pb.RequestLikeStory{
+		UserId:  "9446b610-2ee7-46b4-98a1-ff905b016d2b",
+		StoryId: "a9a0e266-ef7b-459e-aa28-ee091fc3eafb",
+	}
+
+	err := NewIntRepo().CreateLike(&req)
+	if err != nil {
+		t.Error(err)
+	}
+}

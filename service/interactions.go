@@ -103,4 +103,30 @@ func (i *Interations) GetComments(ctx context.Context, in *pb.RequestGetComments
 	return &resp, err
 }
 
-// func (i *Interations) LikeStory(ctx context.Context, in *pb.RequestLikeStory) (*pb.ResponseLikeStory, error)
+func (i *Interations) LikeStory(ctx context.Context, in *pb.RequestLikeStory) (
+	*pb.ResponseLikeStory, error) {
+
+	// checking user exists
+	valid, err := i.UserClient.ValidateUser(ctx, &pbUser.RequestGetProfile{Id: in.UserId})
+	if err != nil || !valid.Success {
+		i.Logger.Error(fmt.Sprintf("error with validating user: %s", err))
+		return nil, fmt.Errorf("error: invalid userID: %s", err)
+	}
+
+	err = i.InterationsRepo.LikeStory(in.StoryId)
+	if err != nil {
+		i.Logger.Error(fmt.Sprintf("error with add one to like_count column of stories: %s", err))
+		return nil, err
+	}
+
+	err = i.InterationsRepo.CreateLike(in)
+	if err != nil {
+		i.Logger.Error(fmt.Sprintf("error with add like info to like table: %s", err))
+		return nil, err
+	}
+	return &pb.ResponseLikeStory{
+		StoryId: in.StoryId,
+		UserId:  in.UserId,
+		LikedAt: time.Now().String(),
+	}, nil
+}
