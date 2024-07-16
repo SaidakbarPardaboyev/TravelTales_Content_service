@@ -76,7 +76,8 @@ func (s *StoriesRepo) EditStory(story *pb.RequestEditStory) (string, error) {
 			location = $3,
 			images = $4
 		where
-			id = $5
+			id = $5 and 
+			deleted_at is null
 		returning author_id
 	`
 	var AuthorId string
@@ -107,6 +108,8 @@ func (s *StoriesRepo) GetStories(filter *pb.RequestGetStories) (
 			created_at
 		from
 			stories
+		where
+			deleted_at is null
 		limit $1
 		offset $2
 	`
@@ -120,8 +123,8 @@ func (s *StoriesRepo) GetStories(filter *pb.RequestGetStories) (
 	for rows.Next() {
 		var story models.Story
 		err := rows.Scan(&story.Id, &story.Title, &story.AuthorId,
-			&story.Location, &story.Likes_count, &story.Comments_count,
-			&story.Created_at)
+			&story.Location, &story.LikesCount, &story.CommentsCount,
+			&story.CreatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -147,11 +150,42 @@ func (s *StoriesRepo) FindNumberOfStories() (int, error) {
 	return count, err
 }
 
-// func (s *StoriesRepo) GetStories(filter *pb.RequestGetStories) (
-// 	*pb.ResponseGetStories, error) {
+func (s *StoriesRepo) GetStoryFullInfo(id string) (
+	*models.StoryFullInfo, error) {
 
-// 	query := ``
-// }
+	query := `
+		select
+			id, title, content, author_id, location, likes_count, comments_count, 
+			created_at, updated_at
+		from
+			stories
+		where
+			id = $1 and 
+			deleted_at is null
+	`
+
+	res := models.StoryFullInfo{}
+	err := s.DB.QueryRow(query, id).Scan(&res.Id, &res.Title, &res.Content,
+		&res.AuthorId, &res.Location, &res.LikesCount, &res.CommentsCount,
+		&res.CreatedAt, &res.UpdatedAt)
+	return &res, err
+}
+
+func (s *StoriesRepo) GetStoryTags(storyId string) (*[]string, error) {
+
+	query := `
+		select
+			array_agg(tag)
+		from
+			story_tags
+		where
+			story_id = $1
+	`
+
+	res := []string{}
+	err := s.DB.QueryRow(query, storyId).Scan(pq.Array(&res))
+	return &res, err
+}
 
 // func (s *StoriesRepo) GetStories(filter *pb.RequestGetStories) (
 // 	*pb.ResponseGetStories, error) {

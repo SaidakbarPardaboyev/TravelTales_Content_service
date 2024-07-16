@@ -84,10 +84,20 @@ func TestFindNumberOfStories(t *testing.T) {
 	}
 }
 
+func TestGetStoryFullInfo(t *testing.T) {
+	_, err := NewRepo().GetStoryFullInfo("cefbcf04-172e-4b01-88ed-763ab5848d45")
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestGetStoryTags(t *testing.T) {
+	_, err := NewRepo().GetStoryTags("cefbcf04-172e-4b01-88ed-763ab5848d45")
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 // func Test(t *testing.T) {
-
-// }func Test(t *testing.T) {
-
-// }func Test(t *testing.T) {
 
 // }

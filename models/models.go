@@ -5,7 +5,19 @@ type Story struct {
 	Title          string
 	AuthorId       string
 	Location       string
-	Likes_count    int
-	Comments_count int
-	Created_at     string
+	LikesCount    int
+	CommentsCount int
+	CreatedAt     string
+}
+
+type StoryFullInfo struct {
+	Id             string
+	Title          string
+	Content string
+	AuthorId       string
+	Location       string
+	LikesCount    int
+	CommentsCount int
+	CreatedAt     string
+	UpdatedAt string
 }

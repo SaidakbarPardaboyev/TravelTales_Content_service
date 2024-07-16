@@ -120,9 +120,9 @@ func (s *Stories) GetStories(ctx context.Context, in *pb.RequestGetStories) (
 				Username: auther.Username,
 			},
 			Location:      val.Location,
-			LikesCount:    int64(val.Likes_count),
-			CommentsCount: int64(val.Comments_count),
-			CreatedAt:     val.Created_at,
+			LikesCount:    int64(val.LikesCount),
+			CommentsCount: int64(val.CommentsCount),
+			CreatedAt:     val.CreatedAt,
 		}
 
 		resp.Stories = append(resp.Stories, &story)
@@ -142,7 +142,40 @@ func (s *Stories) GetStories(ctx context.Context, in *pb.RequestGetStories) (
 
 func (s *Stories) GetStoryFullInfo(ctx context.Context, in *pb.RequestGetStoryFullInfo) (
 	*pb.ResponseGetStoryFullInfo, error) {
+	story, err := s.StoriesRepo.GetStoryFullInfo(in.Id)
+	if err != nil {
+		return nil, err
+	}
 
+	auther, err := s.UserClient.GetAuthorInfo(ctx,
+		&pbUser.RequestGetAuthorInfo{Id: story.AuthorId})
+	if err != nil {
+		return nil, err
+	}
+
+	resp := pb.ResponseGetStoryFullInfo{
+		Id:       story.Id,
+		Title:    story.Title,
+		Content:  story.Content,
+		Location: story.Location,
+		Author: &pb.AuthorForGetStoryFullInfo{
+			Id:       auther.Id,
+			Username: auther.Username,
+			FullName: auther.FullName,
+		},
+		LikesCount:    int64(story.LikesCount),
+		CommentsCount: int64(story.CommentsCount),
+		CreatedAt:     story.CreatedAt,
+		UpdatedAt:     story.UpdatedAt,
+	}
+
+	tags, err := s.StoriesRepo.GetStoryTags(resp.Id)
+	if err != nil {
+		return nil, err
+	}
+	resp.Tags = *tags
+
+	return &resp, nil
 }
 
 // func (s *Stories) DeleteStory(ctx context.Context, in *pb.RequestDeleteStory) (*pb.ResponseDeleteStory, error)
