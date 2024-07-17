@@ -153,7 +153,44 @@ func (i *Itineraries) GetAllItineraries(ctx context.Context, in *pb.RequestGetAl
 	return &resp, nil
 }
 
-// func (i *Itineraries) GetItineraryFullInfo(ctx context.Context, in *pb.RequestGetItineraryFullInfo) (*pb.ResponseGetItineraryFullInfo, error)
+func (i *Itineraries) GetItineraryFullInfo(ctx context.Context, in *pb.RequestGetItineraryFullInfo) (
+	*pb.ResponseGetItineraryFullInfo, error) {
+
+	itineraries, err := i.ItinerariesRepo.GetItinerariesFullInfo(in.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	auther, err := i.UserClient.GetAuthorInfo(ctx,
+		&pbUser.RequestGetAuthorInfo{Id: itineraries.AutherId})
+	if err != nil {
+		return nil, err
+	}
+
+	resp := pb.ResponseGetItineraryFullInfo{
+		Id:          itineraries.Id,
+		Title:       itineraries.Title,
+		Description: itineraries.Description,
+		StartDate:   itineraries.StartDate,
+		EndDate:     itineraries.EndDate,
+		Author: &pb.Author{
+			Id:       auther.Id,
+			Username: auther.Username,
+		},
+		LikesCount:    int64(itineraries.LikesCount),
+		CommentsCount: int64(itineraries.CommentsCount),
+		CreatedAt:     itineraries.CreatedAt,
+		UpdatedAt:     itineraries.UpdatedAt,
+	}
+
+	destinations, err := i.ItinerariesRepo.GetItinerariesDestinations(resp.Id)
+	if err != nil {
+		return nil, err
+	}
+	resp.Destinations = *destinations
+	return &resp, nil
+}
+
 // func (i *Itineraries) WriteCommentToItinerary(ctx context.Context, in *pb.RequestWriteCommentToItinerary) (*pb.ResponseWriteCommentToItinerary, error)
 // func (i *Itineraries) GetDestinations(ctx context.Context, in *pb.RequestGetDestinations) (*pb.ResponseGetDestinations, error)
 // func (i *Itineraries) GetDestinationsAllInfo(ctx context.Context, in *pb.RequestGetDestinationsAllInfo) (*pb.ResponseGetDestinationsAllInfo, error)

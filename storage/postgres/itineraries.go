@@ -216,9 +216,92 @@ func (i *ItinerariesRepo) FindNumberOfItineraries() (int, error) {
 	return count, err
 }
 
-// func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
-// func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
-// func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
+func (i *ItinerariesRepo) GetItinerariesFullInfo(id string) (
+	*models.ItineraryFullInfo, error) {
+
+	query := `
+		select
+			id, title, description, start_date, end_date, author_id, 
+			likes_count, comments_count, created_at, updated_at
+		from 
+			itineraries
+		where
+			id = $1 and
+			deleted_at is null`
+
+	resp := models.ItineraryFullInfo{}
+	err := i.DB.QueryRow(query, id).Scan(&resp.Id, &resp.Title,
+		&resp.Description, &resp.StartDate, &resp.EndDate,
+		&resp.AutherId, &resp.LikesCount, &resp.CommentsCount,
+		&resp.CreatedAt, &resp.UpdatedAt)
+	return &resp, err
+}
+
+func (i *ItinerariesRepo) GetItinerariesDestinations(id string) (*[]*pb.DestinationEdit,
+	error) {
+
+	query := `
+		select
+			id, name, start_date, end_date
+		from
+			itinerary_destinations
+		where
+			itinerary_id = $1 and
+			deleted_at is null`
+
+	resp := []*pb.DestinationEdit{}
+	rows, err := i.DB.Query(query, id)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		des := pb.DestinationEdit{}
+		err = rows.Scan(&des.Id, &des.Name, &des.StartDate, &des.EndDate)
+		if err != nil {
+			return nil, err
+		}
+
+		activities, err := i.GetDestinationActivities(des.Id)
+		if err != nil {
+			return nil, err
+		}
+
+		des.Activities = *activities
+		resp = append(resp, &des)
+	}
+	return &resp, nil
+}
+
+func (i *ItinerariesRepo) GetDestinationActivities(desId string) (
+	*[]*pb.Activity, error) {
+
+	query := `
+		select
+			id, activity
+		from
+			itinerary_activities
+		where
+			destination_id = $1 and
+			deleted_at is null`
+
+	activities := []*pb.Activity{}
+	rows, err := i.DB.Query(query, desId)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		activity := pb.Activity{}
+		err = rows.Scan(&activity.Id, &activity.Activity)
+		if err != nil {
+			return nil, err
+		}
+		activities = append(activities, &activity)
+	}
+	return &activities, nil
+}
+
 // func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
 // func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
 // func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}

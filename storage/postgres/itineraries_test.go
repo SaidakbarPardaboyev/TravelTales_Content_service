@@ -125,13 +125,21 @@ func TestFindNumberOfItineraries(t *testing.T) {
 	}
 }
 
-// func Test(t *testing.T) {
+func TestGetItinerariesFullInfo(t *testing.T) {
+	_, err := NewItinarRepo().GetItinerariesFullInfo(
+		"35d06507-51e2-41cc-87eb-a0107f4f8217")
+	if err != nil {
+		t.Error(err)
+	}
+}
 
-// }
-
-// func Test(t *testing.T) {
-
-// }
+func TestGetItinerariesDestinations(t *testing.T) {
+	_, err := NewItinarRepo().GetItinerariesDestinations(
+		"35d06507-51e2-41cc-87eb-a0107f4f8217")
+	if err != nil {
+		t.Error(err)
+	}
+}
 
 // func Test(t *testing.T) {
 

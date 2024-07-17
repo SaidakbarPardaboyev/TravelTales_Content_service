@@ -33,10 +33,23 @@ type Itinerary struct {
 	Id            string
 	Title         string
 	Description   string
-	AutherId      string
 	StartDate     string
 	EndDate       string
+	AutherId      string
 	LikesCount    int
 	CommentsCount int
 	CreatedAt     string
+}
+
+type ItineraryFullInfo struct {
+	Id            string
+	Title         string
+	Description   string
+	StartDate     string
+	EndDate       string
+	AutherId      string
+	LikesCount    int
+	CommentsCount int
+	CreatedAt     string
+	UpdatedAt     string
 }
