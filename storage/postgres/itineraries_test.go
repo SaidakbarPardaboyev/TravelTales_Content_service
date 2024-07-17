@@ -141,9 +141,17 @@ func TestGetItinerariesDestinations(t *testing.T) {
 	}
 }
 
-// func Test(t *testing.T) {
-
-// }
+func TestWriteCommentToItinerary(t *testing.T) {
+	req := pb.RequestWriteCommentToItinerary{
+		Content: "It is so good journay",
+		AuthorId: "030c9cdc-c410-4e94-a5f6-4152fd4eafcb",
+		ItineraryId: "00d47248-2563-4494-9561-d8c10749b8b6",
+	}
+	_, err := NewItinarRepo().WriteCommentToItinerary(&req)
+	if err != nil {
+		t.Error(err)
+	}
+}
 
 // func Test(t *testing.T) {
 

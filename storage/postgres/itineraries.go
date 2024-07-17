@@ -302,7 +302,21 @@ func (i *ItinerariesRepo) GetDestinationActivities(desId string) (
 	return &activities, nil
 }
 
-// func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
+func (i *ItinerariesRepo) WriteCommentToItinerary(req *pb.RequestWriteCommentToItinerary) (
+	string, error) {
+
+	query := `
+		insert into commentsForItinerary(
+			id, content, author_id, itinerary_id
+		) values (
+			$1, $2, $3, $4 
+		)`
+
+	newId := uuid.NewString()
+	_, err := i.DB.Exec(query, newId, req.Content, req.AuthorId, req.ItineraryId)
+	return newId, err
+}
+
 // func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
 // func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
 // func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}

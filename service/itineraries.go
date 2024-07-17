@@ -122,6 +122,7 @@ func (i *Itineraries) GetAllItineraries(ctx context.Context, in *pb.RequestGetAl
 		auther, err := i.UserClient.GetAuthorInfo(ctx,
 			&pbUser.RequestGetAuthorInfo{Id: val.AutherId})
 		if err != nil {
+			i.Logger.Error(fmt.Sprintf("error with getting author info: %s", err))
 			return nil, err
 		}
 		itiner := pb.Itinerary{
@@ -158,12 +159,14 @@ func (i *Itineraries) GetItineraryFullInfo(ctx context.Context, in *pb.RequestGe
 
 	itineraries, err := i.ItinerariesRepo.GetItinerariesFullInfo(in.Id)
 	if err != nil {
+		i.Logger.Error(fmt.Sprintf("error with getting full info itineraries: %s", err))
 		return nil, err
 	}
 
 	auther, err := i.UserClient.GetAuthorInfo(ctx,
 		&pbUser.RequestGetAuthorInfo{Id: itineraries.AutherId})
 	if err != nil {
+		i.Logger.Error(fmt.Sprintf("error with getting author info: %s", err))
 		return nil, err
 	}
 
@@ -185,13 +188,37 @@ func (i *Itineraries) GetItineraryFullInfo(ctx context.Context, in *pb.RequestGe
 
 	destinations, err := i.ItinerariesRepo.GetItinerariesDestinations(resp.Id)
 	if err != nil {
+		i.Logger.Error(fmt.Sprintf("error with getting itineraries's destination : %s", err))
 		return nil, err
 	}
 	resp.Destinations = *destinations
 	return &resp, nil
 }
 
-// func (i *Itineraries) WriteCommentToItinerary(ctx context.Context, in *pb.RequestWriteCommentToItinerary) (*pb.ResponseWriteCommentToItinerary, error)
+func (i *Itineraries) WriteCommentToItinerary(ctx context.Context, in *pb.RequestWriteCommentToItinerary) (
+	*pb.ResponseWriteCommentToItinerary, error) {
+
+	// checking user exists
+	valid, err := i.UserClient.ValidateUser(ctx, &pbUser.RequestGetProfile{Id: in.AuthorId})
+	if err != nil || !valid.Success {
+		i.Logger.Error(fmt.Sprintf("error with validating user: %s", err))
+		return nil, fmt.Errorf("error: invalid userID: %s", err)
+	}
+
+	id, err := i.ItinerariesRepo.WriteCommentToItinerary(in)
+	if err != nil {
+		i.Logger.Error(fmt.Sprintf("error with writing comment: %s", err))
+		return nil, err
+	}
+	return &pb.ResponseWriteCommentToItinerary{
+		Id:          id,
+		Content:     in.Content,
+		AuthorId:    in.AuthorId,
+		ItineraryId: in.ItineraryId,
+		CreatedAt:   time.Now().String(),
+	}, nil
+}
+
 // func (i *Itineraries) GetDestinations(ctx context.Context, in *pb.RequestGetDestinations) (*pb.ResponseGetDestinations, error)
 // func (i *Itineraries) GetDestinationsAllInfo(ctx context.Context, in *pb.RequestGetDestinationsAllInfo) (*pb.ResponseGetDestinationsAllInfo, error)
 // func (i *Itineraries) WriteMessages(ctx context.Context, in *pb.RequestWriteMessages) (*pb.ResponseWriteMessages, error)
