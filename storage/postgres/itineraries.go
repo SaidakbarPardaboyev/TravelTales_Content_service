@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"time"
 	pb "travel/genproto/itineraries"
+	"travel/models"
 	"travel/pkg/logger"
 
 	"github.com/google/uuid"
@@ -111,7 +112,7 @@ func EditItineraries(tx *sql.Tx, req *pb.RequestEditItineraries) error {
 	return nil
 }
 
-func EditItinerariesDestinations(tx *sql.Tx, 
+func EditItinerariesDestinations(tx *sql.Tx,
 	destinations []*pb.DestinationEdit) error {
 
 	query := `
@@ -165,6 +166,61 @@ func EditActivities(tx *sql.Tx, activities *[]*pb.Activity) error {
 	return nil
 }
 
+func (i *ItinerariesRepo) GetAllItineraries(req *pb.RequestGetAllItineraries) (
+	*[]models.Itinerary, error) {
+
+	query := `
+		select
+			id, title, description, start_date, end_date, author_id, 
+			likes_count, comments_count, created_at
+		from 
+			itineraries
+		where
+			deleted_at is null
+		limit $1
+		offset $2
+	`
+
+	rows, err := i.DB.Query(query, req.Limit, req.Limit*req.Page)
+	if err != nil {
+		return nil, err
+	}
+
+	itineraries := []models.Itinerary{}
+	for rows.Next() {
+		itinerary := models.Itinerary{}
+		err := rows.Scan(&itinerary.Id, &itinerary.Title, &itinerary.Description,
+			&itinerary.StartDate, &itinerary.EndDate, &itinerary.AutherId,
+			&itinerary.LikesCount, &itinerary.CommentsCount, &itinerary.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+		itineraries = append(itineraries, itinerary)
+	}
+	return &itineraries, nil
+}
+
+func (i *ItinerariesRepo) FindNumberOfItineraries() (int, error) {
+
+	query := `
+		select
+			count(*)
+		from
+			itineraries
+		where
+			deleted_at is null
+	`
+
+	count := 0
+	err := i.DB.QueryRow(query).Scan(&count)
+	return count, err
+}
+
+// func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
+// func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
+// func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
+// func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
+// func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
 // func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
 // func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
 // func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}

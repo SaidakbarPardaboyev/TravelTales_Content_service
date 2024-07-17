@@ -106,52 +106,77 @@ func TestEditItinerariesDestinations(t *testing.T) {
 	}
 }
 
-// func TestEditItineraries(t *testing.T) {
+func TestGetAllItineraries(t *testing.T) {
+	req := pb.RequestGetAllItineraries{
+		Page:  0,
+		Limit: 10,
+	}
+
+	_, err := NewItinarRepo().GetAllItineraries(&req)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestFindNumberOfItineraries(t *testing.T) {
+	_, err := NewItinarRepo().FindNumberOfItineraries()
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+// func Test(t *testing.T) {
 
 // }
 
-// func TestEditItineraries(t *testing.T) {
+// func Test(t *testing.T) {
 
 // }
 
-// func TestEditItineraries(t *testing.T) {
+// func Test(t *testing.T) {
 
 // }
 
-// func TestEditItineraries(t *testing.T) {
+// func Test(t *testing.T) {
 
 // }
 
-// func TestEditItineraries(t *testing.T) {
+// func Test(t *testing.T) {
 
 // }
 
-// func TestEditItineraries(t *testing.T) {
+// func Test(t *testing.T) {
 
 // }
-// func TestEditItineraries(t *testing.T) {
+
+// func Test(t *testing.T) {
 
 // }
-// func TestEditItineraries(t *testing.T) {
+
+// func Test(t *testing.T) {
 
 // }
-// func TestEditItineraries(t *testing.T) {
+
+// func Test(t *testing.T) {
 
 // }
-// func TestEditItineraries(t *testing.T) {
+
+// func Test(t *testing.T) {
 
 // }
-// func TestEditItineraries(t *testing.T) {
+
+// func Test(t *testing.T) {
 
 // }
-// func TestEditItineraries(t *testing.T) {
 
-// }func TestEditItineraries(t *testing.T) {
-
-// }
-// func TestEditItineraries(t *testing.T) {
+// func Test(t *testing.T) {
 
 // }
-// func TestEditItineraries(t *testing.T) {
+
+// func Test(t *testing.T) {
+
+// }
+
+// func Test(t *testing.T) {
 
 // }

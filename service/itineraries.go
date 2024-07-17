@@ -109,8 +109,50 @@ func (i *Itineraries) EditItineraries(ctx context.Context, in *pb.RequestEditIti
 	}, nil
 }
 
-// func (i *Itineraries) DeleteItineraries(ctx context.Context, in *pb.RequestDeleteItineraries) (*pb.ResponseDeleteItineraries, error)
-// func (i *Itineraries) GetAllItineraries(ctx context.Context, in *pb.RequestGetAllItineraries) (*pb.ResponseGetAllItineraries, error)
+func (i *Itineraries) GetAllItineraries(ctx context.Context, in *pb.RequestGetAllItineraries) (
+	*pb.ResponseGetAllItineraries, error) {
+	itineraties, err := i.ItinerariesRepo.GetAllItineraries(in)
+	if err != nil {
+		i.Logger.Error(fmt.Sprintf("error with getting itineraries: %s", err))
+		return nil, err
+	}
+
+	resp := pb.ResponseGetAllItineraries{}
+	for _, val := range *itineraties {
+		auther, err := i.UserClient.GetAuthorInfo(ctx,
+			&pbUser.RequestGetAuthorInfo{Id: val.AutherId})
+		if err != nil {
+			return nil, err
+		}
+		itiner := pb.Itinerary{
+			Id:    val.Id,
+			Title: val.Title,
+			Auther: &pb.Author{
+				Id:       auther.Id,
+				Username: auther.Username,
+			},
+			StartDate:     val.StartDate,
+			EndDate:       val.EndDate,
+			LikesCount:    int64(val.LikesCount),
+			CommentsCount: int64(val.CommentsCount),
+			CreatedAt:     val.CreatedAt,
+		}
+
+		resp.Itineraries = append(resp.Itineraries, &itiner)
+	}
+
+	countOfItiner, err := i.ItinerariesRepo.FindNumberOfItineraries()
+	if err != nil {
+		i.Logger.Error(fmt.Sprintf("error with getting total itineraries count: %s", err))
+		return nil, err
+	}
+	resp.Total = int64(countOfItiner)
+	resp.Limit = in.Limit
+	resp.Page = in.Page
+
+	return &resp, nil
+}
+
 // func (i *Itineraries) GetItineraryFullInfo(ctx context.Context, in *pb.RequestGetItineraryFullInfo) (*pb.ResponseGetItineraryFullInfo, error)
 // func (i *Itineraries) WriteCommentToItinerary(ctx context.Context, in *pb.RequestWriteCommentToItinerary) (*pb.ResponseWriteCommentToItinerary, error)
 // func (i *Itineraries) GetDestinations(ctx context.Context, in *pb.RequestGetDestinations) (*pb.ResponseGetDestinations, error)
@@ -118,3 +160,32 @@ func (i *Itineraries) EditItineraries(ctx context.Context, in *pb.RequestEditIti
 // func (i *Itineraries) WriteMessages(ctx context.Context, in *pb.RequestWriteMessages) (*pb.ResponseWriteMessages, error)
 // func (i *Itineraries) GetMessages(ctx context.Context, in *pb.RequestGetMessages) (*pb.ResponseGetMessages, error)
 // func (i *Itineraries) GetUserStatistic(ctx context.Context, in *pb.RequestGetUserStatistic) (*pb.ResponseGetUserStatistic, error)
+
+// func (i *Itineraries) DeleteItineraries(ctx context.Context, in *pb.RequestDeleteItineraries) (
+// 	*pb.ResponseDeleteItineraries, error) {
+// 		tx, err := i.ItinerariesRepo.DB.Begin()
+// 		if err != nil {
+// 			i.Logger.Error(fmt.Sprintf("error with creating transaction: %s", err))
+// 			return nil, fmt.Errorf("error with creating transaction: %s", err)
+
+// 		}
+// 		defer tx.Commit()
+
+// 		err = postgres.EditItineraries(tx, in)
+// 		if err != nil {
+// 			tx.Rollback()
+// 			i.Logger.Error(fmt.Sprintf("error with editing itineraries table: %s", err))
+// 			return nil, err
+// 		}
+
+// 		err = postgres.EditItinerariesDestinations(tx, in.Destinations)
+// 		if err != nil {
+// 			tx.Rollback()
+// 			i.Logger.Error(fmt.Sprintf("error with editing itineraries' destnation: %s", err))
+// 			return nil, err
+// 		}
+
+// 		return &pb.ResponseDeleteItineraries{
+// 			Message: "Itinerary was deleted successfully",
+// 		}, nil
+// }
