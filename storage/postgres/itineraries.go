@@ -317,7 +317,52 @@ func (i *ItinerariesRepo) WriteCommentToItinerary(req *pb.RequestWriteCommentToI
 	return newId, err
 }
 
-// func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
-// func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
+func (i *ItinerariesRepo) CreateDestination(req *pb.RequestCreateDestination) (
+	string, error) {
+	query := `
+		insert into destinations(
+			id, name, country, description, best_time_to_visit, 
+			average_cost_per_day, currency, language, popularity_score
+		) values (
+			$1, $2, $3, $4, $5, $6, $7, $8, $9  
+		)`
+
+	newId := uuid.NewString()
+	_, err := i.DB.Exec(query, newId, req.Name, req.Country, req.Description,
+		req.BestTimeToVisit, req.AverageCostPerDay, req.Currency,
+		req.Language, req.PopularityScore)
+	return newId, err
+}
+
+func (i *ItinerariesRepo) GetTopDestinations(req *pb.RequestGetDestinations) (
+	*pb.ResponseGetDestinations, error) {
+
+	query := `
+		select
+			id, name, country, description
+		from
+			destinations
+		order by
+			popularity_score desc
+		limit $1
+		offset $2
+	`
+
+	rows, err := i.DB.Query(query, req.Limit, req.Limit*req.Page)
+	if err != nil {
+		return nil, err
+	}
+	res := pb.ResponseGetDestinations{}
+	for rows.Next() {
+		des := pb.DestionationInfo{}
+		err := rows.Scan(&des.Id, &des.Name, &des.Country, &des.Description)
+		if err != nil {
+			return nil, err
+		}
+		res.Destinations = append(res.Destinations, &des)
+	}
+	return &res, nil
+}
+
 // func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
 // func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}

@@ -11,6 +11,9 @@ import (
 	"travel/pkg/connections"
 	"travel/pkg/logger"
 	"travel/storage/postgres"
+	"travel/storage/redis"
+
+	rd "github.com/redis/go-redis/v9"
 )
 
 type Itineraries struct {
@@ -18,16 +21,19 @@ type Itineraries struct {
 	Logger          *slog.Logger
 	ItinerariesRepo *postgres.ItinerariesRepo
 	UserClient      pbUser.UsersClient
+	Redis           redis.DestinationRedisClient
 }
 
 func NewItinerariesService(db *sql.DB) *Itineraries {
 	ItinerariesRepo := postgres.NewItinerariesRepo(db)
 	Logger := logger.NewLogger()
 	userClient := connections.NewUserClient()
+	redisClient := redis.NewDestinationRedisClient()
 	return &Itineraries{
 		Logger:          Logger,
 		ItinerariesRepo: ItinerariesRepo,
 		UserClient:      userClient,
+		Redis:           *redisClient,
 	}
 }
 
@@ -219,9 +225,70 @@ func (i *Itineraries) WriteCommentToItinerary(ctx context.Context, in *pb.Reques
 	}, nil
 }
 
-// func (i *Itineraries) GetDestinations(ctx context.Context, in *pb.RequestGetDestinations) (*pb.ResponseGetDestinations, error)
+func (i *Itineraries) CreateDestination(ctx context.Context, in *pb.RequestCreateDestination) (
+	*pb.ResponseCreateDestination, error) {
+	id, err := i.ItinerariesRepo.CreateDestination(in)
+	if err != nil {
+		i.Logger.Error(fmt.Sprintf("error with creating destinations: %s", err))
+		return nil, err
+	}
+	return &pb.ResponseCreateDestination{
+		Id:                id,
+		Name:              in.Name,
+		Country:           in.Country,
+		Description:       in.Description,
+		BestTimeToVisit:   in.BestTimeToVisit,
+		AverageCostPerDay: in.AverageCostPerDay,
+		Currency:          in.Currency,
+		Language:          in.Language,
+		PopularityScore:   in.PopularityScore,
+		CreatedAt:         time.Now().String(),
+	}, nil
+}
+
+func (i *Itineraries) UpdateTopDestinations(ctx context.Context, in *pb.RequestGetDestinations) (
+	*pb.ResponseGetDestinations, error) {
+
+	destinations, err := i.ItinerariesRepo.GetTopDestinations(in)
+	if err != nil {
+		i.Logger.Error(fmt.Sprintf("error with getting top destinations: %s", err))
+		return nil, err
+	}
+	err = i.Redis.SetTopDestinations(ctx, destinations)
+	return destinations, err
+}
+
+func (i *Itineraries) GetDestinations(ctx context.Context, in *pb.RequestGetDestinations) (
+	*pb.ResponseGetDestinations, error) {
+
+	destinations, err := i.Redis.GetTopDestinations(ctx)
+	if err == rd.Nil {
+		destinations, err := i.UpdateTopDestinations(ctx, in)
+		if err != nil {
+			i.Logger.Error(fmt.Sprintf("error with updating destinations in redis: %s", err))
+			return nil, err
+		}
+		if len(destinations.Destinations) >= int(in.Limit) {
+			destinations.Destinations = destinations.Destinations[:in.Limit]
+		}
+		return destinations, nil
+	}
+	if err != nil {
+		i.Logger.Error(fmt.Sprintf("error with getting destinations: %s", err))
+		return nil, err
+	}
+
+	if len(destinations.Destinations) < int(in.Limit) {
+		destinations, err = i.UpdateTopDestinations(ctx, in)
+		if err != nil {
+			i.Logger.Error(fmt.Sprintf("error with updating destinations in redis: %s", err))
+			return nil, err
+		}
+	}
+	return destinations, nil
+}
+
 // func (i *Itineraries) GetDestinationsAllInfo(ctx context.Context, in *pb.RequestGetDestinationsAllInfo) (*pb.ResponseGetDestinationsAllInfo, error)
-// func (i *Itineraries) WriteMessages(ctx context.Context, in *pb.RequestWriteMessages) (*pb.ResponseWriteMessages, error)
 // func (i *Itineraries) GetMessages(ctx context.Context, in *pb.RequestGetMessages) (*pb.ResponseGetMessages, error)
 // func (i *Itineraries) GetUserStatistic(ctx context.Context, in *pb.RequestGetUserStatistic) (*pb.ResponseGetUserStatistic, error)
 

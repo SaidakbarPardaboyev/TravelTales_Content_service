@@ -33,6 +33,7 @@ type ItinerariesClient interface {
 	WriteMessages(ctx context.Context, in *RequestWriteMessages, opts ...grpc.CallOption) (*ResponseWriteMessages, error)
 	GetMessages(ctx context.Context, in *RequestGetMessages, opts ...grpc.CallOption) (*ResponseGetMessages, error)
 	GetUserStatistic(ctx context.Context, in *RequestGetUserStatistic, opts ...grpc.CallOption) (*ResponseGetUserStatistic, error)
+	CreateDestination(ctx context.Context, in *RequestCreateDestination, opts ...grpc.CallOption) (*ResponseCreateDestination, error)
 }
 
 type itinerariesClient struct {
@@ -142,6 +143,15 @@ func (c *itinerariesClient) GetUserStatistic(ctx context.Context, in *RequestGet
 	return out, nil
 }
 
+func (c *itinerariesClient) CreateDestination(ctx context.Context, in *RequestCreateDestination, opts ...grpc.CallOption) (*ResponseCreateDestination, error) {
+	out := new(ResponseCreateDestination)
+	err := c.cc.Invoke(ctx, "/itineraries.itineraries/CreateDestination", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ItinerariesServer is the server API for Itineraries service.
 // All implementations must embed UnimplementedItinerariesServer
 // for forward compatibility
@@ -157,6 +167,7 @@ type ItinerariesServer interface {
 	WriteMessages(context.Context, *RequestWriteMessages) (*ResponseWriteMessages, error)
 	GetMessages(context.Context, *RequestGetMessages) (*ResponseGetMessages, error)
 	GetUserStatistic(context.Context, *RequestGetUserStatistic) (*ResponseGetUserStatistic, error)
+	CreateDestination(context.Context, *RequestCreateDestination) (*ResponseCreateDestination, error)
 	mustEmbedUnimplementedItinerariesServer()
 }
 
@@ -196,6 +207,9 @@ func (UnimplementedItinerariesServer) GetMessages(context.Context, *RequestGetMe
 }
 func (UnimplementedItinerariesServer) GetUserStatistic(context.Context, *RequestGetUserStatistic) (*ResponseGetUserStatistic, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserStatistic not implemented")
+}
+func (UnimplementedItinerariesServer) CreateDestination(context.Context, *RequestCreateDestination) (*ResponseCreateDestination, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateDestination not implemented")
 }
 func (UnimplementedItinerariesServer) mustEmbedUnimplementedItinerariesServer() {}
 
@@ -408,6 +422,24 @@ func _Itineraries_GetUserStatistic_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Itineraries_CreateDestination_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestCreateDestination)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ItinerariesServer).CreateDestination(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/itineraries.itineraries/CreateDestination",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ItinerariesServer).CreateDestination(ctx, req.(*RequestCreateDestination))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Itineraries_ServiceDesc is the grpc.ServiceDesc for Itineraries service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -458,6 +490,10 @@ var Itineraries_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserStatistic",
 			Handler:    _Itineraries_GetUserStatistic_Handler,
+		},
+		{
+			MethodName: "CreateDestination",
+			Handler:    _Itineraries_CreateDestination_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
