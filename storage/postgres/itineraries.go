@@ -2,7 +2,9 @@ package postgres
 
 import (
 	"database/sql"
+	"fmt"
 	"log/slog"
+	"time"
 	pb "travel/genproto/itineraries"
 	"travel/pkg/logger"
 
@@ -83,9 +85,86 @@ func (i *ItinerariesRepo) CreateActivities(desId string, req *[]string) error {
 	return nil
 }
 
-// func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
-// func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
-// func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
+func EditItineraries(tx *sql.Tx, req *pb.RequestEditItineraries) error {
+
+	query := `
+		update
+			itineraries
+		set
+			title = $1,
+			description = $2,
+			start_date = $3,
+			end_date = $4,
+			updated_at = $5
+		where
+			id = $6 and
+			deleted_at is null`
+
+	res, err := tx.Exec(query, req.Title, req.Description, req.StartDate,
+		req.EndDate, time.Now(), req.Id)
+	if err != nil {
+		return err
+	}
+	if num, _ := res.RowsAffected(); num <= 0 {
+		return fmt.Errorf("itinerary not found with the id: %s", req.Id)
+	}
+	return nil
+}
+
+func EditItinerariesDestinations(tx *sql.Tx, 
+	destinations []*pb.DestinationEdit) error {
+
+	query := `
+		update
+			itinerary_destinations
+		set
+			name = $1,
+			start_date = $2, 
+			end_date = $3
+		where
+			id = $4 and
+			deleted_at is null`
+
+	for _, des := range destinations {
+		res, err := tx.Exec(query, des.Name, des.StartDate,
+			des.EndDate, des.Id)
+		if err != nil {
+			return err
+		}
+		if num, _ := res.RowsAffected(); num <= 0 {
+			return fmt.Errorf("destination not found with the id: %s", des.Id)
+		}
+		err = EditActivities(tx, &des.Activities)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func EditActivities(tx *sql.Tx, activities *[]*pb.Activity) error {
+
+	query := `
+		update
+			itinerary_activities
+		set
+			activity = $1
+		where
+			id = $2 and
+			deleted_at is null`
+
+	for _, act := range *activities {
+		res, err := tx.Exec(query, act.Activity, act.Id)
+		if err != nil {
+			return err
+		}
+		if num, _ := res.RowsAffected(); num <= 0 {
+			return fmt.Errorf("activity not found with the id: %s", act.Id)
+		}
+	}
+	return nil
+}
+
 // func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
 // func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}
 // func (i *ItinerariesRepo) CreateItineraries(req *pb.RequestCreateItineraries) () {}

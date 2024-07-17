@@ -64,7 +64,51 @@ func (i *Itineraries) CreateItineraries(ctx context.Context, in *pb.RequestCreat
 	}, nil
 }
 
-// func (i *Itineraries) EditItineraries(ctx context.Context, in *pb.RequestEditItineraries) (*pb.ResponseEditItineraries, error)
+func (i *Itineraries) EditItineraries(ctx context.Context, in *pb.RequestEditItineraries) (
+	*pb.ResponseEditItineraries, error) {
+
+	// checking user exists
+	valid, err := i.UserClient.ValidateUser(ctx, &pbUser.RequestGetProfile{
+		Id: in.AuthorId,
+	})
+	if err != nil || !valid.Success {
+		i.Logger.Error(fmt.Sprintf("error with validating user: %s", err))
+		return nil, fmt.Errorf("error: invalid userID: %s", err)
+	}
+
+	tx, err := i.ItinerariesRepo.DB.Begin()
+	if err != nil {
+		i.Logger.Error(fmt.Sprintf("error with creating transaction: %s", err))
+		return nil, fmt.Errorf("error with creating transaction: %s", err)
+
+	}
+	defer tx.Commit()
+
+	err = postgres.EditItineraries(tx, in)
+	if err != nil {
+		tx.Rollback()
+		i.Logger.Error(fmt.Sprintf("error with editing itineraries table: %s", err))
+		return nil, err
+	}
+
+	err = postgres.EditItinerariesDestinations(tx, in.Destinations)
+	if err != nil {
+		tx.Rollback()
+		i.Logger.Error(fmt.Sprintf("error with editing itineraries' destnation: %s", err))
+		return nil, err
+	}
+
+	return &pb.ResponseEditItineraries{
+		Id:          in.Id,
+		Title:       in.Title,
+		Description: in.Description,
+		StartDate:   in.StartDate,
+		EndDate:     in.EndDate,
+		AuthorId:    in.AuthorId,
+		UpdatedAt:   time.Now().String(),
+	}, nil
+}
+
 // func (i *Itineraries) DeleteItineraries(ctx context.Context, in *pb.RequestDeleteItineraries) (*pb.ResponseDeleteItineraries, error)
 // func (i *Itineraries) GetAllItineraries(ctx context.Context, in *pb.RequestGetAllItineraries) (*pb.ResponseGetAllItineraries, error)
 // func (i *Itineraries) GetItineraryFullInfo(ctx context.Context, in *pb.RequestGetItineraryFullInfo) (*pb.ResponseGetItineraryFullInfo, error)
